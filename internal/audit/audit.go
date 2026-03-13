@@ -8,26 +8,26 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mcp-firewall/mcpfw/internal/arbiter"
-	"github.com/mcp-firewall/mcpfw/internal/config"
-	"github.com/mcp-firewall/mcpfw/internal/rules"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/arbiter"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/config"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/rules"
 )
 
 // Event is a single audit record written for every firewall decision.
 type Event struct {
-	Timestamp  time.Time        `json:"timestamp"`
-	RequestID  string           `json:"request_id"`
-	Direction  rules.Direction  `json:"direction"`
-	ServerID   string           `json:"server_id"`
-	ServerURL  string           `json:"server_url"`
-	Method     string           `json:"method"`
-	ToolName   string           `json:"tool_name,omitempty"`
-	Verdict    rules.Verdict    `json:"verdict"`
-	Severity   rules.Severity   `json:"severity"`
-	Reason     string           `json:"reason"`
-	RuledBy    string           `json:"ruled_by"`
-	Confidence float64          `json:"confidence"`
-	Findings   []rules.Finding  `json:"findings,omitempty"`
+	Timestamp  time.Time       `json:"timestamp"`
+	RequestID  string          `json:"request_id"`
+	Direction  rules.Direction `json:"direction"`
+	ServerID   string          `json:"server_id"`
+	ServerURL  string          `json:"server_url"`
+	Method     string          `json:"method"`
+	ToolName   string          `json:"tool_name,omitempty"`
+	Verdict    rules.Verdict   `json:"verdict"`
+	Severity   rules.Severity  `json:"severity"`
+	Reason     string          `json:"reason"`
+	RuledBy    string          `json:"ruled_by"`
+	Confidence float64         `json:"confidence"`
+	Findings   []rules.Finding `json:"findings,omitempty"`
 }
 
 // Logger writes audit events to one or more outputs.
