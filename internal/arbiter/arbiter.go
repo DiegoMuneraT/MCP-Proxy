@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mcp-firewall/mcpfw/internal/config"
-	"github.com/mcp-firewall/mcpfw/internal/rules"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/config"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/rules"
 )
 
 // Decision is the final arbiter output for a message.
@@ -18,7 +18,7 @@ type Decision struct {
 	Verdict    rules.Verdict
 	Severity   rules.Severity
 	Reason     string
-	RuledBy    string  // "rules" | "llm" | "default"
+	RuledBy    string // "rules" | "llm" | "default"
 	Confidence float64
 	Findings   []rules.Finding
 }

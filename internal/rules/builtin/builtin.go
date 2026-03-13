@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/mcp-firewall/mcpfw/internal/config"
-	"github.com/mcp-firewall/mcpfw/internal/rules"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/config"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/rules"
 )
 
 // ── Rule 1: Server Trust ─────────────────────────────────────────────────────
