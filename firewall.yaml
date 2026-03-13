@@ -1,0 +1,117 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# MCP Firewall — firewall.yaml
+# Drop-in security proxy for MCP agents.
+#
+# ENV variable expansion is supported anywhere in this file.
+# Example: llm_api_key: ${ANTHROPIC_API_KEY}
+# ─────────────────────────────────────────────────────────────────────────────
+
+firewall:
+  # Address the proxy listens on. Your MCP client connects here instead of
+  # directly to the MCP server.
+  listen_addr: "127.0.0.1:4000"
+
+  # If true, connections to servers NOT listed below are refused immediately.
+  block_unknown_servers: true
+
+  # What to do if no rule matches and arbiter has no opinion.
+  # "deny" is the safe default (fail closed).
+  default_action: "deny"
+
+  # How long to wait for an upstream server response.
+  request_timeout: 30s
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Trusted MCP servers
+# Each key is the server ID used in the proxy URL path:
+#   Client connects to: http://127.0.0.1:4000/<server_id>/...
+#   Firewall forwards to: <url>/...
+# ─────────────────────────────────────────────────────────────────────────────
+
+trusted_servers:
+  filesystem:
+    url: "http://127.0.0.1:3001"
+    risk_level: high
+
+    # Only these tools will be visible to the LLM. All others are stripped.
+    allowed_tools:
+      - read_file
+      - list_directory
+      - search_files
+
+    # These tools require explicit confirmation before execution.
+    requires_confirmation:
+      - write_file
+      - delete_file
+      - move_file
+
+  slack:
+    url: "http://127.0.0.1:3002"
+    risk_level: medium
+    allowed_tools:
+      - search_messages
+      - list_channels
+      - get_thread
+    requires_confirmation:
+      - send_message
+      - create_channel
+
+  database:
+    url: "http://127.0.0.1:3003"
+    risk_level: high
+    allowed_tools:
+      - query_select      # read-only queries
+      - describe_table
+      - list_tables
+    requires_confirmation:
+      - query_insert
+      - query_update
+      - query_delete
+      - drop_table
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Hybrid arbiter settings
+# Rules run first. LLM is only invoked for ambiguous cases (low confidence).
+# ─────────────────────────────────────────────────────────────────────────────
+
+arbiter:
+  rules_first: true
+
+  # If a rule's confidence is below this threshold, escalate to the LLM.
+  # 1.0 = never escalate (rules-only mode)
+  # 0.0 = always escalate (LLM-only mode)
+  confidence_threshold: 0.75
+
+  # LLM used as the safety arbiter for ambiguous cases.
+  # Supports: "anthropic" | "openai" | "ollama"
+  llm_provider: "anthropic"
+  llm_model: "claude-haiku-4-5-20251001"  # fast + cheap for safety checks
+
+  # API key — prefer setting via env variable MCPFW_LLM_API_KEY
+  llm_api_key: "${MCPFW_LLM_API_KEY}"
+
+  # For ollama or custom OpenAI-compatible endpoints:
+  # llm_base_url: "http://localhost:11434"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Audit log
+# Every firewall decision is recorded here.
+# ─────────────────────────────────────────────────────────────────────────────
+
+audit:
+  enabled: true
+
+  # "stdout" | "file" | "both"
+  output: "both"
+
+  # Used when output is "file" or "both"
+  file_path: "./mcpfw-audit.log"
+
+  # "json" (machine-readable) | "text" (human-readable)
+  format: "json"
+
+  # If false, only blocked/flagged events are logged (reduces noise).
+  log_allowed: false
