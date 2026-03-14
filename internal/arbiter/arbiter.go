@@ -165,7 +165,11 @@ func (a *Arbiter) callLLM(ctx context.Context, prompt string) (rules.Verdict, st
 
 	switch cfg.LLMProvider {
 	case "anthropic", "":
-		apiURL = "https://api.anthropic.com/v1/messages"
+		base := cfg.LLMBaseURL
+		if base == "" {
+			base = "https://api.anthropic.com"
+		}
+		apiURL = base + "/v1/messages"
 		authHeader = "x-api-key"
 		reqBody, _ = json.Marshal(map[string]interface{}{
 			"model":      cfg.LLMModel,
