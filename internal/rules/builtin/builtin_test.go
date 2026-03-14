@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mcp-firewall/mcpfw/internal/config"
-	"github.com/mcp-firewall/mcpfw/internal/rules"
-	"github.com/mcp-firewall/mcpfw/rules/builtin"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/config"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/rules"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/rules/builtin"
 )
 
 // ── test helpers ─────────────────────────────────────────────────────────────
