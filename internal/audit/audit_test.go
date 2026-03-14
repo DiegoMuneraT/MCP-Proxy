@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mcp-firewall/mcpfw/internal/arbiter"
-	"github.com/mcp-firewall/mcpfw/internal/audit"
-	"github.com/mcp-firewall/mcpfw/internal/config"
-	"github.com/mcp-firewall/mcpfw/internal/rules"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/arbiter"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/audit"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/config"
+	"github.com/DiegoMuneraT/MCP-Proxy/internal/rules"
 )
 
 // writerLogger is a test helper that captures log output.
