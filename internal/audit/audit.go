@@ -68,6 +68,12 @@ func New(cfg *config.AuditConfig) (*Logger, error) {
 	return &Logger{cfg: cfg, writers: writers}, nil
 }
 
+// NewWithWriter creates an audit Logger that writes to an explicit io.Writer.
+// Primarily used in tests to capture output without touching the filesystem.
+func NewWithWriter(cfg *config.AuditConfig, w io.Writer) (*Logger, error) {
+	return &Logger{cfg: cfg, writers: []io.Writer{w}}, nil
+}
+
 // Log writes an audit event derived from a message and decision.
 func (l *Logger) Log(requestID string, msg *rules.Message, decision *arbiter.Decision) {
 	if !l.cfg.Enabled {

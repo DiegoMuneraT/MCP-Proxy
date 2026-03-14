@@ -83,6 +83,13 @@ func (r *ToolAllowlistRule) Evaluate(_ context.Context, msg *rules.Message) rule
 		}
 	}
 
+	// Also pass through tools in requires_confirmation — the destructive gate handles those.
+	for _, confirm := range srv.RequiresConfirmation {
+		if confirm == msg.ToolName {
+			return allow(r.Name())
+		}
+	}
+
 	return rules.Finding{
 		RuleName:   r.Name(),
 		Verdict:    rules.Block,
