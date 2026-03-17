@@ -39,6 +39,7 @@ trusted_servers:
       - read_file
       - list_directory
       - search_files
+      - inject_test
 
     # These tools require explicit confirmation before execution.
     requires_confirmation:
@@ -114,4 +115,4 @@ audit:
   format: "json"
 
   # If false, only blocked/flagged events are logged (reduces noise).
-  log_allowed: false
+  log_allowed: true
