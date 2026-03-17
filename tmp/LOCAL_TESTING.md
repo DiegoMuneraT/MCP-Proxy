@@ -308,6 +308,24 @@ curl -s -X POST http://127.0.0.1:4000/evil-server/message \
 
 ---
 
+### Test 6 — ambiguous content that escalates to LLM
+
+The LLM only gets invoked for soft patterns — things the rules aren't confident about (confidence < 0.75).
+
+```bash
+curl -s -X POST http://127.0.0.1:4000/filesystem/message \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 6,
+    "method": "tools/call",
+    "params": {"name": "inject_test", "arguments": {"mode": "soft"}}
+  }' | python3 -m json.tool
+```
+
+**Audit log:** `[ALLOW or BLOCK]  tool=inject_test  ruled_by=llm  <LLM's explanation>`
+**Terminal 1:** Shows the incoming request — the fake server was reached if the LLM decided it was OK otherwise it won't get to the server
+
 ## What each terminal shows per test
 
 | Test | Terminal 1 (fake server) | Terminal 2 (firewall log) | Terminal 3 (audit) |
