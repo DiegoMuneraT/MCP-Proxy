@@ -10,11 +10,18 @@ linters:
     - unused
     - bodyclose
     - gocritic
-    - gofmt
-    - goimports
     - misspell
     - prealloc
     - unconvert
+  settings:
+    govet:
+      enable:
+        - shadow
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
   exclusions:
     rules:
       - path: _test\.go
@@ -22,12 +29,7 @@ linters:
           - errcheck
           - gocritic
 
-linters-settings:
-  govet:
-    enable:
-      - shadow
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
+formatters:
+  enable:
+    - gofmt
+    - goimports
