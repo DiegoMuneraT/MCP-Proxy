@@ -149,6 +149,17 @@ registry.Register(&myrules.BlockCryptoRule{})
 | Ambiguous cases rules can't judge | Hybrid arbiter escalates to LLM safety check |
 | LLM arbiter failure | Fails closed — blocks the message |
 
+### Confidence threshold 
+
+The key design decision is how the arbiter fails closed: if a rule is uncertain, if the LLM is unavailable, 
+if the LLM returns garbage — in every case the message is blocked, not allowed. 
+The system defaults to safety without any human making that call. The confidence_threshold in config lets you 
+tune how much you trust rules vs. LLM judgment.
+
+The injection scanner has two tiers: hard patterns (block with 0.95 confidence — no LLM needed) and soft patterns 
+(escalate to arbiter with 0.45 confidence — below the 0.75 threshold, so the LLM gets asked). 
+This is exactly: "rules first, LLM only for ambiguous cases".
+
 ---
 
 ## Roadmap

@@ -87,8 +87,8 @@ arbiter:
 
   # LLM used as the safety arbiter for ambiguous cases.
   # Supports: "anthropic" | "openai" | "ollama"
-  llm_provider: "anthropic"
-  llm_model: "claude-haiku-4-5-20251001"  # fast + cheap for safety checks
+  llm_provider: "openai"
+  llm_model: "gpt-4o-mini" # "claude-haiku-4-5-20251001" fast + cheap for safety checks
 
   # API key — prefer setting via env variable MCPFW_LLM_API_KEY
   llm_api_key: "${MCPFW_LLM_API_KEY}"

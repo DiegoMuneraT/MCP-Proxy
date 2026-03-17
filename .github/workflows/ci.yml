@@ -45,8 +45,8 @@ jobs:
             exit 1
           fi
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v5
         with:
           file: coverage.out
           fail_ci_if_error: false   # don't fail CI if Codecov is down
