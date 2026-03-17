@@ -32,3 +32,6 @@ formatters:
   enable:
     - gofmt
     - goimports
+  exclusions:
+    rules:
+      - path: internal/config/config\.go

@@ -86,16 +86,16 @@ func runListRules(configPath string) {
 	builtin.RegisterAll(registry, cfg)
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
-	fmt.Fprintln(w, "RULE\tDIRECTIONS\tDESCRIPTION")
-	fmt.Fprintln(w, "────\t──────────\t───────────")
+	_, _ = fmt.Fprintln(w, "RULE\tDIRECTIONS\tDESCRIPTION")
+	_, _ = fmt.Fprintln(w, "────\t──────────\t───────────")
 	for _, r := range registry.All() {
 		dirs := make([]string, 0, len(r.Directions()))
 		for _, d := range r.Directions() {
 			dirs = append(dirs, string(d))
 		}
-		fmt.Fprintf(w, "%s\t%s\t%s\n", r.Name(), joinStrings(dirs, ", "), r.Description())
+		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\n", r.Name(), joinStrings(dirs, ", "), r.Description())
 	}
-	w.Flush()
+	_ = w.Flush()
 }
 
 func runValidate(configPath string) {

@@ -177,7 +177,7 @@ func (b *Bridge) Close() error {
 		return nil
 	}
 	b.closed = true
-	b.stdin.Close()
+	_ = b.stdin.Close()
 	if b.cmd != nil && b.cmd.Process != nil {
 		_ = b.cmd.Process.Kill()
 	}

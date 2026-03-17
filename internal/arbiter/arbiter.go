@@ -220,7 +220,7 @@ func (a *Arbiter) callLLM(ctx context.Context, prompt string) (rules.Verdict, st
 	if err != nil {
 		return rules.Block, "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return rules.Block, "", fmt.Errorf("LLM API returned %d", resp.StatusCode)

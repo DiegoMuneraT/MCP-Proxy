@@ -114,11 +114,11 @@ func (l *Logger) Log(requestID string, msg *rules.Message, decision *arbiter.Dec
 
 func (l *Logger) writeJSON(w io.Writer, event *Event) {
 	data, _ := json.Marshal(event)
-	fmt.Fprintf(w, "%s\n", data)
+	_, _ = fmt.Fprintf(w, "%s\n", data)
 }
 
 func (l *Logger) writeText(w io.Writer, event *Event) {
-	fmt.Fprintf(w, "[%s] %s | server=%s tool=%s method=%s verdict=%s severity=%s ruled_by=%s | %s\n",
+	_, _ = fmt.Fprintf(w, "[%s] %s | server=%s tool=%s method=%s verdict=%s severity=%s ruled_by=%s | %s\n",
 		event.Timestamp.Format(time.RFC3339),
 		event.RequestID,
 		event.ServerID,
