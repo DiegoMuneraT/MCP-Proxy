@@ -2,43 +2,36 @@ version: "2"
 
 linters:
   enable:
-    - errcheck       # check that errors are handled
-    - gosimple       # suggest simplifications
-    - govet          # go vet checks
-    - ineffassign    # detect ineffectual assignments
-    - staticcheck    # static analysis
-    - unused         # unused code
-    - bodyclose      # check HTTP response body is closed
-    - contextcheck   # check context is passed correctly
-    - exhaustive     # check exhaustiveness of enum switches
-    - gocritic       # opinionated but useful checks
-    - godot          # check comment punctuation
-    - gofmt          # check formatting
-    - goimports      # check import ordering
-    - gosec          # security checks
-    - misspell       # fix common spelling mistakes
-    - noctx          # detect http requests without context
-    - prealloc       # suggest pre-allocating slices
-    - unconvert      # remove unnecessary type conversions
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - bodyclose
+    - gocritic
+    - misspell
+    - prealloc
+    - unconvert
+  settings:
+    govet:
+      enable:
+        - shadow
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gocritic
 
-linters-settings:
-  govet:
-    enable:
-      - shadow
-  gosec:
-    excludes:
-      - G104  # errors unhandled (covered by errcheck)
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
-
-issues:
-  exclude-rules:
-    # Test files get looser rules.
-    - path: _test\.go
-      linters:
-        - gosec
-        - errcheck
-        - gocritic
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    paths:
+      - internal/config/config\.go

@@ -105,20 +105,20 @@ func (l *Logger) Log(requestID string, msg *rules.Message, decision *arbiter.Dec
 	for _, w := range l.writers {
 		switch l.cfg.Format {
 		case "text":
-			l.writeText(w, event)
+			l.writeText(w, &event)
 		default:
-			l.writeJSON(w, event)
+			l.writeJSON(w, &event)
 		}
 	}
 }
 
-func (l *Logger) writeJSON(w io.Writer, event Event) {
+func (l *Logger) writeJSON(w io.Writer, event *Event) {
 	data, _ := json.Marshal(event)
-	fmt.Fprintf(w, "%s\n", data)
+	_, _ = fmt.Fprintf(w, "%s\n", data)
 }
 
-func (l *Logger) writeText(w io.Writer, event Event) {
-	fmt.Fprintf(w, "[%s] %s | server=%s tool=%s method=%s verdict=%s severity=%s ruled_by=%s | %s\n",
+func (l *Logger) writeText(w io.Writer, event *Event) {
+	_, _ = fmt.Fprintf(w, "[%s] %s | server=%s tool=%s method=%s verdict=%s severity=%s ruled_by=%s | %s\n",
 		event.Timestamp.Format(time.RFC3339),
 		event.RequestID,
 		event.ServerID,
@@ -132,5 +132,5 @@ func (l *Logger) writeText(w io.Writer, event Event) {
 }
 
 func openLogFile(path string) (*os.File, error) {
-	return os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	return os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
 }

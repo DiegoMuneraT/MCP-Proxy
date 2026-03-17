@@ -100,7 +100,7 @@ func (p *Proxy) handleJSONRPC(w http.ResponseWriter, r *http.Request, serverID s
 		http.Error(w, "failed to read request body", http.StatusBadRequest)
 		return
 	}
-	r.Body.Close()
+	_ = r.Body.Close()
 
 	msg, err := parseMessage(body, rules.Outbound, serverID, srv.URL)
 	if err != nil {
@@ -135,7 +135,7 @@ func (p *Proxy) handleSSE(w http.ResponseWriter, r *http.Request, serverID strin
 
 	// Open upstream SSE connection.
 	upstreamURL := *target
-	upReq, _ := http.NewRequestWithContext(ctx, http.MethodGet, upstreamURL.String(), nil)
+	upReq, _ := http.NewRequestWithContext(ctx, http.MethodGet, upstreamURL.String(), http.NoBody)
 	upReq.Header = r.Header.Clone()
 
 	client := &http.Client{}
@@ -144,7 +144,7 @@ func (p *Proxy) handleSSE(w http.ResponseWriter, r *http.Request, serverID strin
 		http.Error(w, "upstream SSE connection failed", http.StatusBadGateway)
 		return
 	}
-	defer upResp.Body.Close()
+	defer func() { _ = upResp.Body.Close() }()
 
 	// Set SSE headers on our response.
 	w.Header().Set("Content-Type", "text/event-stream")
@@ -186,7 +186,7 @@ func (p *Proxy) handleSSE(w http.ResponseWriter, r *http.Request, serverID strin
 						if decision.Verdict == rules.Block {
 							// Replace the event data with a sanitised error.
 							safeEvent := buildSafeSSEEvent(msg.ID, decision.Reason)
-							fmt.Fprint(w, safeEvent)
+							_, _ = fmt.Fprint(w, safeEvent)
 							if canFlush {
 								flusher.Flush()
 							}
@@ -196,7 +196,7 @@ func (p *Proxy) handleSSE(w http.ResponseWriter, r *http.Request, serverID strin
 				}
 
 				// Safe — forward as-is.
-				fmt.Fprint(w, event)
+				_, _ = fmt.Fprint(w, event)
 				if canFlush {
 					flusher.Flush()
 				}
@@ -319,7 +319,7 @@ func writeJSONRPCError(w http.ResponseWriter, id interface{}, code int, message 
 		"id":      id,
 		"error":   map[string]interface{}{"code": code, "message": message},
 	})
-	w.Write(resp)
+	_, _ = w.Write(resp)
 }
 
 // forwardAndScanResponse forwards the request to the upstream server, reads the
@@ -354,7 +354,7 @@ func forwardAndScanResponse(
 		http.Error(w, fmt.Sprintf("upstream error: %v", err), http.StatusBadGateway)
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Read the full response body so we can inspect it.
 	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 2*1024*1024))
@@ -402,7 +402,7 @@ func forwardAndScanResponse(
 		}
 	}
 	w.WriteHeader(resp.StatusCode)
-	w.Write(respBody)
+	_, _ = w.Write(respBody)
 }
 
 // parseInboundResponse parses a JSON-RPC response body into an inbound Message

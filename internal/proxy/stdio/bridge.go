@@ -177,9 +177,9 @@ func (b *Bridge) Close() error {
 		return nil
 	}
 	b.closed = true
-	b.stdin.Close()
+	_ = b.stdin.Close()
 	if b.cmd != nil && b.cmd.Process != nil {
-		b.cmd.Process.Kill()
+		_ = b.cmd.Process.Kill()
 	}
 	return nil
 }
@@ -284,8 +284,8 @@ func (b *Bridge) writeRaw(msg []byte) {
 		return
 	}
 	// MCP stdio transport: each message on its own line.
-	b.stdin.Write(msg)
-	b.stdin.Write([]byte("\n"))
+	_, _ = b.stdin.Write(msg)
+	_, _ = b.stdin.Write([]byte("\n"))
 }
 
 func (b *Bridge) drainStderr() {
