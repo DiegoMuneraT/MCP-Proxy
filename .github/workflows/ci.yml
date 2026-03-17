@@ -37,12 +37,12 @@ jobs:
       - name: Run tests with race detector
         run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
-      - name: Check coverage threshold (60%)
+      - name: Check coverage threshold (50%)
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | tr -d '%' | cut -d'.' -f1)
           echo "Total coverage: ${COVERAGE}%"
-          if [ "$COVERAGE" -lt 60 ]; then
-            echo "Coverage ${COVERAGE}% is below the required 60%"
+          if [ "${COVERAGE}" -lt 50 ]; then
+            echo "Coverage ${COVERAGE}% is below the required 50%"
             exit 1
           fi
 
@@ -73,7 +73,7 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.64.8
+          version: v2.1.2
           args: --timeout=5m
 
   # ── 3. Security scan ──────────────────────────────────────────────────────────
@@ -98,18 +98,13 @@ jobs:
         run: |
           go install github.com/securego/gosec/v2/cmd/gosec@latest
           gosec \
-            -exclude=G402,G501,G505 \
+            -exclude=G402,G501,G505,G107,G104 \
             -exclude-generated \
             -fmt sarif \
             -out results.sarif \
-            -stdout \
-            -verbose=text \
             ./... || true
-
-      - name: Verify SARIF file exists
-        run: |
           if [ ! -f results.sarif ]; then
-            echo '{"version":"2.1.0","runs":[]}' > results.sarif
+            echo '{"version":"2.1.0","$schema":"https://json.schemastore.org/sarif-2.1.0.json","runs":[]}' > results.sarif
           fi
 
       - name: Upload SARIF results

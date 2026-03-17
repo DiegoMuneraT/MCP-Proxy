@@ -319,7 +319,7 @@ func writeJSONRPCError(w http.ResponseWriter, id interface{}, code int, message 
 		"id":      id,
 		"error":   map[string]interface{}{"code": code, "message": message},
 	})
-	w.Write(resp)
+	_, _ = w.Write(resp)
 }
 
 // forwardAndScanResponse forwards the request to the upstream server, reads the
@@ -402,7 +402,7 @@ func forwardAndScanResponse(
 		}
 	}
 	w.WriteHeader(resp.StatusCode)
-	w.Write(respBody)
+	_, _ = w.Write(respBody)
 }
 
 // parseInboundResponse parses a JSON-RPC response body into an inbound Message
