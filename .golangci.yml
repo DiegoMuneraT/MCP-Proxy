@@ -1,34 +1,34 @@
-version: 2
+version: "2"
 
 linters:
   enable:
-    - errcheck       # check that errors are handled
-    - gosimple       # suggest simplifications
-    - govet          # go vet checks
-    - ineffassign    # detect ineffectual assignments
-    - staticcheck    # static analysis
-    - unused         # unused code
-    - bodyclose      # check HTTP response body is closed
-    - gocritic       # opinionated but useful checks
-    - gofmt          # check formatting
-    - goimports      # check import ordering
-    - misspell       # fix common spelling mistakes
-    - prealloc       # suggest pre-allocating slices
-    - unconvert      # remove unnecessary type conversions
-
-linters-settings:
-  govet:
-    enable:
-      - shadow
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - bodyclose
+    - gocritic
+    - gofmt
+    - goimports
+    - misspell
+    - prealloc
+    - unconvert
+  settings:
+    govet:
+      enable:
+        - shadow
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
 
 issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
-        - gocritic
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gocritic
