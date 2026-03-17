@@ -125,8 +125,8 @@ func (p *Proxy) handleJSONRPC(w http.ResponseWriter, r *http.Request, serverID s
 		return
 	}
 
-	// Passed — forward to real server.
-	forwardRequest(ctx, w, r, body, target, p.cfg.Firewall.RequestTimeout)
+	// Passed outbound checks — forward to server and scan the response.
+	forwardAndScanResponse(ctx, w, r, body, target, p.cfg.Firewall.RequestTimeout, msg, serverID, srv, p)
 }
 
 // handleSSE intercepts inbound Server-Sent Events (tool results flow back this way).
@@ -322,7 +322,21 @@ func writeJSONRPCError(w http.ResponseWriter, id interface{}, code int, message 
 	w.Write(resp)
 }
 
-func forwardRequest(ctx context.Context, w http.ResponseWriter, r *http.Request, body []byte, target *url.URL, timeout time.Duration) {
+// forwardAndScanResponse forwards the request to the upstream server, reads the
+// full response body, runs inbound firewall inspection on it, and either returns
+// the safe response to the client or replaces it with a JSON-RPC error.
+func forwardAndScanResponse(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	body []byte,
+	target *url.URL,
+	timeout time.Duration,
+	outboundMsg *rules.Message,
+	serverID string,
+	srv *config.ServerConfig,
+	p *Proxy,
+) {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
@@ -342,13 +356,91 @@ func forwardRequest(ctx context.Context, w http.ResponseWriter, r *http.Request,
 	}
 	defer resp.Body.Close()
 
+	// Read the full response body so we can inspect it.
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 2*1024*1024))
+	if err != nil {
+		http.Error(w, "failed to read upstream response", http.StatusBadGateway)
+		return
+	}
+
+	// Build an inbound message from the response and run it through the firewall.
+	inboundMsg := parseInboundResponse(respBody, serverID, srv.URL, outboundMsg.ToolName)
+	if inboundMsg != nil {
+		requestID := newRequestID()
+		decision := p.arbiter.Evaluate(ctx, inboundMsg)
+		p.logger.Log(requestID, inboundMsg, &decision)
+
+		if decision.Verdict == rules.Block {
+			writeJSONRPCError(w, inboundMsg.ID, -32600,
+				fmt.Sprintf("Blocked by MCP Firewall: %s", decision.Reason))
+			return
+		}
+	} else {
+		// Not a tool result (e.g. tools/list response) — log it as allowed for visibility.
+		inboundLog := &rules.Message{
+			Direction: rules.Inbound,
+			ServerID:  serverID,
+			ServerURL: srv.URL,
+			Method:    outboundMsg.Method,
+			ToolName:  outboundMsg.ToolName,
+			Raw:       respBody,
+		}
+		allowDecision := &arbiter.Decision{
+			Verdict:    rules.Allow,
+			Severity:   rules.SeverityInfo,
+			Reason:     "Non-tool-result response forwarded.",
+			RuledBy:    "rules",
+			Confidence: 1.0,
+		}
+		p.logger.Log(newRequestID(), inboundLog, allowDecision)
+	}
+
+	// Safe — write response back to client.
 	for k, vs := range resp.Header {
 		for _, v := range vs {
 			w.Header().Add(k, v)
 		}
 	}
 	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body)
+	w.Write(respBody)
+}
+
+// parseInboundResponse parses a JSON-RPC response body into an inbound Message
+// if it contains a tool result. Returns nil for non-tool-result responses.
+func parseInboundResponse(raw []byte, serverID, serverURL, toolName string) *rules.Message {
+	var base struct {
+		JSONRPC string          `json:"jsonrpc"`
+		ID      interface{}     `json:"id"`
+		Result  json.RawMessage `json:"result"`
+	}
+	if err := json.Unmarshal(raw, &base); err != nil {
+		return nil
+	}
+	if base.Result == nil {
+		return nil
+	}
+
+	var result interface{}
+	if err := json.Unmarshal(base.Result, &result); err != nil {
+		return nil
+	}
+
+	toolResult := extractToolResultText(result)
+	if toolResult == "" {
+		return nil
+	}
+
+	return &rules.Message{
+		Raw:        raw,
+		JSONRPC:    base.JSONRPC,
+		ID:         base.ID,
+		Direction:  rules.Inbound,
+		ServerID:   serverID,
+		ServerURL:  serverURL,
+		ToolName:   toolName,
+		Result:     base.Result,
+		ToolResult: toolResult,
+	}
 }
 
 func newRequestID() string {
