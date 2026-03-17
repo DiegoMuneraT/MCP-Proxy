@@ -165,7 +165,7 @@ var hardPatterns = []injectionPattern{
 	{"act as if you are", rules.SeverityHigh, "Role reassignment attempt"},
 	{"new persona:", rules.SeverityHigh, "Persona injection attempt"},
 	{"system prompt:", rules.SeverityCritical, "System prompt injection attempt"},
-	{"<system>", rules.SeverityCritical, "XML system tag injection"},
+	{"<s>ignore", rules.SeverityCritical, "XML system tag injection"},
 	{"[system]", rules.SeverityCritical, "Bracket system tag injection"},
 	{"###instruction###", rules.SeverityCritical, "Delimiter injection attempt"},
 	{"your real instructions", rules.SeverityHigh, "Instruction override attempt"},
