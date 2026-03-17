@@ -1,5 +1,8 @@
 # MCP Firewall
 
+[![CI](https://github.com/DiegoMuneraT/MCP-Proxy/actions/workflows/ci.yml/badge.svg)](https://github.com/DiegoMuneraT/MCP-Proxy/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/DiegoMuneraT/MCP-Proxy/branch/main/graph/badge.svg)](https://codecov.io/gh/DiegoMuneraT/MCP-Proxy)
+
 **A transparent security proxy for MCP (Model Context Protocol) agents.**
 
 MCP Firewall sits between your AI application and any MCP server, automatically enforcing security policies without requiring changes to your host app or the servers. It is designed for the future of autonomous AI agents — where decisions need to be safe even with minimal human involvement.
