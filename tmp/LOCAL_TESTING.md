@@ -250,6 +250,8 @@ curl -s -X POST http://127.0.0.1:4000/filesystem/message \
 }
 ```
 
+**Header: -H "X-MCPFW-Confirm: true" \**
+
 **Audit log:** `[CONFIRM] tool=delete_file           ruled_by=rules     Tool is marked as destructive and requires explicit confirmation.`
 
 ---
@@ -307,6 +309,107 @@ curl -s -X POST http://127.0.0.1:4000/evil-server/message \
 **Terminal 1:** Nothing — the fake server was never contacted.
 
 ---
+
+### Test 6 — ambiguous content that escalates to LLM
+
+The LLM only gets invoked for soft patterns — things the rules aren't confident about (confidence < 0.75).
+
+```bash
+curl -s -X POST http://127.0.0.1:4000/filesystem/message \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 6,
+    "method": "tools/call",
+    "params": {"name": "inject_test", "arguments": {"mode": "soft"}}
+  }' | python3 -m json.tool
+```
+
+**Audit log:** `[ALLOW or BLOCK]  tool=inject_test  ruled_by=llm  <LLM's explanation>`
+**Terminal 1:** Shows the incoming request — the fake server was reached if the LLM decided it was OK otherwise it won't get to the server
+
+--
+
+### Tests 7,8,9 - list and use tools from external MCP server
+
+This is an external MCP server running on port 8080.
+
+**(7) List tools**
+
+```bash
+curl -s -X GET http://127.0.0.1:4000/document/message \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 7,
+    "method": "tools/call",
+    "params": {
+      "name": "tools",
+      "arguments": {}
+    }
+  }' | python3 -m json.tool
+```
+
+**Expected firewall response:** JSON listing the tools offered by the MCP server and its properties 
+
+**(8) Use tool: read_doc_contents**
+
+```bash
+curl -s -X POST http://127.0.0.1:4000/document/message \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 8,
+    "method": "tools/call",
+    "params": {
+      "name": "read_doc_contents",
+      "arguments": {
+        "doc_id": "deposition.md"
+      }
+    }
+  }' | python3 -m json.tool
+```
+
+**Expected firewall response:**
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 8,
+    "result": "This deposition covers the testimony of Angela Smith, P.E."
+}
+```
+
+**(9) Edit document:**
+
+```bash
+curl -s -X POST http://127.0.0.1:4000/document/message \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 9,
+    "method": "tools/call",
+    "params": {
+      "name": "edit_document",
+      "arguments": {
+        "doc_id": "plan.md", 
+        "old_str": "The plan outlines the steps for the project'\''s implementation.",
+        "new_str": "The plan describes the implementation steps in detail."}}
+  }' | python3 -m json.tool
+```
+
+**Expected firewall response:**
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 9,
+    "error": {
+        "code": -32601,
+        "message": "Action requires confirmation: Tool is marked as destructive and requires explicit confirmation. — resubmit with X-MCPFW-Confirm: true header to proceed."
+    }
+}
+```
+
+**Header: -H "X-MCPFW-Confirm: true" \**
 
 ## What each terminal shows per test
 

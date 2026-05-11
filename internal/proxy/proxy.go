@@ -117,12 +117,20 @@ func (p *Proxy) handleJSONRPC(w http.ResponseWriter, r *http.Request, serverID s
 		writeJSONRPCError(w, msg.ID, -32600, fmt.Sprintf("Blocked by MCP Firewall: %s", decision.Reason))
 		return
 	case rules.Confirm:
-		// For autonomous operation: apply LLM-based self-confirmation.
-		// In this release we return an error asking the caller to confirm.
-		// A future release will add a confirmation callback mechanism.
-		writeJSONRPCError(w, msg.ID, -32601,
-			fmt.Sprintf("Action requires confirmation: %s — resubmit with X-MCPFW-Confirm: true header to proceed.", decision.Reason))
-		return
+		// Check if the caller provided explicit confirmation via header.
+		if r.Header.Get("X-MCPFW-Confirm") == "true" {
+			// User confirmed — allow the request to proceed.
+			decision.Verdict = rules.Allow
+			decision.Reason = fmt.Sprintf("Confirmed by user: %s", decision.Reason)
+			p.logger.Log(requestID, msg, &decision)
+		} else {
+			// For autonomous operation: apply LLM-based self-confirmation.
+			// In this release we return an error asking the caller to confirm.
+			// A future release will add a confirmation callback mechanism.
+			writeJSONRPCError(w, msg.ID, -32601,
+				fmt.Sprintf("Action requires confirmation: %s — resubmit with X-MCPFW-Confirm: true header to proceed.", decision.Reason))
+			return
+		}
 	}
 
 	// Passed outbound checks — forward to server and scan the response.
@@ -341,6 +349,8 @@ func forwardAndScanResponse(
 	defer cancel()
 
 	upURL := *target
+	upURL.Path = r.URL.Path
+
 	upReq, err := http.NewRequestWithContext(ctx, r.Method, upURL.String(), strings.NewReader(string(body)))
 	if err != nil {
 		http.Error(w, "failed to build upstream request", http.StatusInternalServerError)
