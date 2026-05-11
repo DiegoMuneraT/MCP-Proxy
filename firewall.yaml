@@ -47,16 +47,17 @@ trusted_servers:
       - delete_file
       - move_file
 
-  slack:
-    url: "http://127.0.0.1:3002"
+  document:
+    url: "http://127.0.0.1:8080"
     risk_level: medium
+
     allowed_tools:
-      - search_messages
-      - list_channels
-      - get_thread
+      - tools
+      - read_doc_contents
+
     requires_confirmation:
-      - send_message
-      - create_channel
+      - edit_document
+
 
   database:
     url: "http://127.0.0.1:3003"
